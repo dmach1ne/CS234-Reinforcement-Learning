@@ -43,7 +43,12 @@ class BasePolicy:
         observations = np2torch(observations)
         #######################################################
         #########   YOUR CODE HERE - 1-4 lines.    ############
+        distribution =self.action_distribution(observations)
+        sampled_actions = distribution.sample()
+        log_probs = distribution.log_prob(sampled_actions)
         
+        log_probs = log_probs.numpy()
+        sampled_actions = sampled_actions.numpy()
         #######################################################
         #########          END YOUR CODE.          ############
         if return_log_prob:
@@ -68,7 +73,7 @@ class CategoricalPolicy(BasePolicy, nn.Module):
         """
         #######################################################
         #########   YOUR CODE HERE - 1-2 lines.    ############
-        
+        distribution = ptd.Categorical(logits=self.network(observations))
         #######################################################
         #########          END YOUR CODE.          ############
         return distribution
@@ -86,7 +91,8 @@ class GaussianPolicy(BasePolicy, nn.Module):
         self.network = network
         #######################################################
         #########   YOUR CODE HERE - 1 line.       ############
-        
+        param = nn.Parameter(torch.zeros(action_dim))
+        self.log_std = param
         #######################################################
         #########          END YOUR CODE.          ############
 
@@ -100,7 +106,7 @@ class GaussianPolicy(BasePolicy, nn.Module):
         """
         #######################################################
         #########   YOUR CODE HERE - 1 line.       ############
-        
+        std = torch.exp(self.log_std)
         #######################################################
         #########          END YOUR CODE.          ############
         return std
@@ -124,7 +130,10 @@ class GaussianPolicy(BasePolicy, nn.Module):
         """
         #######################################################
         #########   YOUR CODE HERE - 2-4 lines.    ############
+        mean = self.network(observations)
+        std = self.std()
         
+        distribution = ptd.Normal(mean, std)
         #######################################################
         #########          END YOUR CODE.          ############
         return distribution
