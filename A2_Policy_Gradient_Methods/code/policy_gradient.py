@@ -72,7 +72,12 @@ class PolicyGradient(object):
         """
         #######################################################
         #########   YOUR CODE HERE - 8-12 lines.   ############
-        
+        model = build_mlp(self.observation_dim, self.action_dim, self.config.n_layers, self.config.layer_size)
+        if self.discrete:
+            self.policy = CategoricalPolicy(model)
+        else:
+            self.policy = GaussianPolicy(model, self.action_dim)
+        self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=self.lr)
         #######################################################
         #########          END YOUR CODE.          ############
 
@@ -190,7 +195,12 @@ class PolicyGradient(object):
             rewards = path["reward"]
             #######################################################
             #########   YOUR CODE HERE - 5-10 lines.   ############
-            
+            returns = []
+            G = 0
+            for t in reversed(range(len(rewards))):
+                G = self.config.gamma * G + rewards[t]
+                returns.append(G)
+            returns = returns[::-1] 
             #######################################################
             #########          END YOUR CODE.          ############
             all_returns.append(returns)
@@ -215,7 +225,7 @@ class PolicyGradient(object):
         """
         #######################################################
         #########   YOUR CODE HERE - 1-2 lines.    ############
-        
+        normalized_advantages = (advantages - advantages.mean()) / (advantages.std())
         #######################################################
         #########          END YOUR CODE.          ############
         return normalized_advantages
@@ -259,7 +269,7 @@ class PolicyGradient(object):
         compute log probabilities.
         See https://pytorch.org/docs/stable/distributions.html#distribution
 
-        Note:
+        Note:o
         PyTorch optimizers will try to minimize the loss you compute, but you
         want to maximize the policy's performance.
         """
@@ -268,6 +278,16 @@ class PolicyGradient(object):
         advantages = np2torch(advantages)
         #######################################################
         #########   YOUR CODE HERE - 5-7 lines.    ############
+        
+        dist = self.policy.action_distribution(observations)
+        log_probs = dist.log_prob(actions)
+        
+        batch_size = observations.shape[0]
+        loss = -torch.sum(log_probs * advantages) / batch_size
+        
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
         
         #######################################################
         #########          END YOUR CODE.          ############

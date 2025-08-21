@@ -133,7 +133,7 @@ class GaussianPolicy(BasePolicy, nn.Module):
         mean = self.network(observations)
         std = self.std()
         
-        distribution = ptd.Normal(mean, std)
+        distribution = ptd.Independent(ptd.Normal(mean, std),1)
         #######################################################
         #########          END YOUR CODE.          ############
         return distribution
