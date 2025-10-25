@@ -1,1 +1,1 @@
-Wall time elapsed: 944.13s
+Wall time elapsed: 1809.60s

@@ -42,12 +42,21 @@ class PPO(PolicyGradient):
         """
         observations = np2torch(observations)
         actions = np2torch(actions)
-        advantages = np2torch(advantages)
+        advantages = np2torch(advantages).squeeze()
         old_logprobs = np2torch(old_logprobs)
 
         #######################################################
         #########   YOUR CODE HERE - 10-15 lines.   ###########
+        self.optimizer.zero_grad()
+        dist = self.policy.action_distribution(observations)
+        logprobs = dist.log_prob(actions)
+        ratio = torch.exp(logprobs - old_logprobs)
+        batch_size = observations.shape[0]
         
+        clipped_ratio = torch.clip(input = ratio, min = 1 - self.eps_clip, max = 1 + self.eps_clip)
+        loss = -torch.sum(torch.min(ratio * advantages, clipped_ratio * advantages)) / batch_size
+        loss.backward()
+        self.optimizer.step()
         #######################################################
         #########          END YOUR CODE.          ############
 

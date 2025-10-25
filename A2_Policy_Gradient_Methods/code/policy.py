@@ -47,8 +47,8 @@ class BasePolicy:
         sampled_actions = distribution.sample()
         log_probs = distribution.log_prob(sampled_actions)
         
-        log_probs = log_probs.numpy()
-        sampled_actions = sampled_actions.numpy()
+        log_probs = log_probs.detach().numpy()
+        sampled_actions = sampled_actions.detach().numpy()
         #######################################################
         #########          END YOUR CODE.          ############
         if return_log_prob:

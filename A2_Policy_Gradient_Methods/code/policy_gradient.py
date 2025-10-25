@@ -195,12 +195,9 @@ class PolicyGradient(object):
             rewards = path["reward"]
             #######################################################
             #########   YOUR CODE HERE - 5-10 lines.   ############
-            returns = []
-            G = 0
-            for t in reversed(range(len(rewards))):
-                G = self.config.gamma * G + rewards[t]
-                returns.append(G)
-            returns = returns[::-1] 
+            returns = rewards.copy()
+            for i in range(len(rewards)-2, -1, -1):
+                returns[i] += self.config.gamma * returns[i+1]
             #######################################################
             #########          END YOUR CODE.          ############
             all_returns.append(returns)
@@ -225,7 +222,7 @@ class PolicyGradient(object):
         """
         #######################################################
         #########   YOUR CODE HERE - 1-2 lines.    ############
-        normalized_advantages = (advantages - advantages.mean()) / (advantages.std())
+        normalized_advantages = (advantages - np.mean(advantages)) / (np.std(advantages))
         #######################################################
         #########          END YOUR CODE.          ############
         return normalized_advantages
